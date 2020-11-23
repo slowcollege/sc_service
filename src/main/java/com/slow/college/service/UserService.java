@@ -16,6 +16,4 @@ public interface UserService {
 	
 	ObjectResponse<ClassStudentItem> getClassStudent (HttpServletRequest request, UserReq req);
 
-	ObjectResponse<List<WaitTrainingItem>> getStudentTrainingTask (HttpServletRequest request, UserReq req);
-	
 }
