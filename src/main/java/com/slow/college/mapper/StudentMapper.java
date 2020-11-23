@@ -1,11 +1,14 @@
 package com.slow.college.mapper;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import com.slow.college.model.Student;
-import com.slow.college.param.user.UserDataItem;
+import com.slow.college.param.user.ClassStudentItem;
+import com.slow.college.param.user.StudentClassItem;
 
 public interface StudentMapper {
 	
@@ -22,7 +25,23 @@ public interface StudentMapper {
 	@Update(" update student set token = #{token} where id = ${id} ")
 	void updateStudentById(@Param("id") Integer id, @Param("token") String token);
 
-	@Select(" select * from student s left join class_has_studentg ")
-	UserDataItem searchUserDataItemByToken(@Param("token") String token);
+	@Select(" select c.id classId, c.name className, c.desc classDesc "
+		+ " from student s "
+		+ " 	left join class_has_student chs on s.id = chs.student_id "
+		+ " 	left join class c on chs.class_id = c.id "
+		+ " where s.token = #{token} group by c.id ")
+	ClassStudentItem searchUserDataItemByToken(@Param("token") String token);
+
+	@Select(" select s.id, s.code, s.name, "
+		+ " 	CASE WHEN c.monitor_id = s.id THEN '班长' "
+		+ " 		WHEN c.vicemonitor_id = s.id THEN '副班长' "
+		+ " 		ELSE '成员' END duty, "
+		+ " DATE_FORMAT(s.create_time, '%Y-%m-%d') createTime, s.score "
+		+ " from class c "
+		+ " 	left join class_has_student chs on c.id = chs.class_id "
+		+ " 	left join student s on chs.student_id = s.id "
+		+ " where c.id = ${classId} group by s.id ")
+	List<StudentClassItem> searchUserDataItemByClassId(
+		@Param("classId") Integer classId);
 	
 }

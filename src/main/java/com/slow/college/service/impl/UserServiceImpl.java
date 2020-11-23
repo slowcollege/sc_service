@@ -1,5 +1,9 @@
 package com.slow.college.service.impl;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.logging.log4j.LogManager;
@@ -8,8 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.slow.college.mapper.StudentMapper;
+import com.slow.college.mapper.TrainingTaskMapper;
 import com.slow.college.model.Student;
-import com.slow.college.param.user.UserDataItem;
+import com.slow.college.param.user.ClassStudentItem;
+import com.slow.college.param.user.StudentClassItem;
+import com.slow.college.param.user.StudentTrainingsItem;
 import com.slow.college.param.user.UserLoginItem;
 import com.slow.college.request.UserReq;
 import com.slow.college.response.ObjectResponse;
@@ -25,6 +32,9 @@ public class UserServiceImpl implements UserService {
 	
 	@Autowired
 	private StudentMapper studentMapper;
+	
+	@Autowired
+	private TrainingTaskMapper trainingTaskMapper;
 	
 	public ObjectResponse<UserLoginItem> login (HttpServletRequest request, UserReq req) {
 		log.info("调用接口login开始");
@@ -72,15 +82,28 @@ public class UserServiceImpl implements UserService {
 		return response;
 	}
 	
-	public ObjectResponse<UserDataItem> searhUserData (HttpServletRequest request, UserReq req) {
-		log.info("调用接口login开始");
+	public ObjectResponse<ClassStudentItem> getClassStudent (HttpServletRequest request, UserReq req) {
+		log.info("调用接口getClassStudent开始");
 		long startTime = System.currentTimeMillis();
-		ObjectResponse<UserDataItem> response = new ObjectResponse<>();
+		ObjectResponse<ClassStudentItem> response = new ObjectResponse<>();
 		try {
 			if (req.getToken() == null || req.getToken().trim().length() == 0) {
 				response.setCode(ResponseCode.CODE_90);
 				response.setMessage(ResponseCode.MSG_90);
 				return response;
+			}
+			if (req.getDate() == null || req.getDate().trim().length() == 0) {
+				req.setDate(DateUtil.parseString(new Date(), DateUtil.YYYY_MM_DD));
+			} else {
+				SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd");
+				Date d = ft.parse(req.getDate().trim());
+				if (d.getTime() - startTime < 0) {
+					response.setCode(ResponseCode.CODE_0);
+					response.setMessage("日期格式错误");
+					return response;
+				} else {
+					req.setDate(req.getDate().trim());
+				}
 			}
 			Student s = studentMapper.searchStudentByToken(req.getToken().trim());
 			if (s == null) {
@@ -88,14 +111,26 @@ public class UserServiceImpl implements UserService {
 				response.setMessage(ResponseCode.MSG_90);
 				return response;
 			}
-			if (s.getPassword() == null || 
-				!req.getPassword().trim().equals(s.getPassword().trim())) {
+			ClassStudentItem res = studentMapper.searchUserDataItemByToken(s.getToken());
+			if (res == null) {
 				response.setCode(ResponseCode.CODE_0);
-				response.setMessage("密码错误");
+				response.setMessage("您没有参加过任何班级！");
 				return response;
 			}
-			UserDataItem res = new UserDataItem();
-			//TODO res
+			res.setDate(req.getDate());
+			//这块取的总的分数（student表里的分数）
+			List<StudentClassItem> sciL = studentMapper.searchUserDataItemByClassId(res.getClassId());
+			if (sciL != null && sciL.size() > 0) {
+				StringBuilder sb = new StringBuilder();
+				for (StudentClassItem item : sciL) {
+					sb.append(",").append(item.getId());
+				}
+				if (sb.length() > 0) {
+					List<StudentTrainingsItem> stiL = trainingTaskMapper
+						.searchStudentTrainingsItemByStudentIds(
+						sb.substring(1), req.getDate());
+				}
+			}
 			response.setResult(res);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -103,8 +138,11 @@ public class UserServiceImpl implements UserService {
 			response.setMessage(ResponseCode.MSG_0);
 		} 
 		long endTime = System.currentTimeMillis();
-		log.info("调用接口login结束，耗时：" + (endTime - startTime) + "ms");
+		log.info("调用接口getClassStudent结束，耗时：" + (endTime - startTime) + "ms");
 		return response;
+	}
+	
+	public static void main(String[] args) {
 	}
 
 }
