@@ -1,6 +1,7 @@
 package com.slow.college.service.impl;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.slow.college.mapper.StudentMapper;
 import com.slow.college.mapper.TrainingTaskMapper;
 import com.slow.college.model.Student;
+import com.slow.college.param.training.WaitTrainingItem;
 import com.slow.college.param.user.ClassStudentItem;
 import com.slow.college.param.user.StudentClassItem;
 import com.slow.college.param.user.StudentTrainingsItem;
@@ -36,6 +38,7 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private TrainingTaskMapper trainingTaskMapper;
 	
+	@Override
 	public ObjectResponse<UserLoginItem> login (HttpServletRequest request, UserReq req) {
 		log.info("调用接口login开始");
 		long startTime = System.currentTimeMillis();
@@ -67,6 +70,7 @@ public class UserServiceImpl implements UserService {
 			response.setMessage(ResponseCode.MSG_1);
 			UserLoginItem res = new UserLoginItem();
 			res.setToken(token);
+			res.setId(s.getId());
 			res.setName(s.getName());
 			long createTime = DateUtil.parseDate(s.getCreateTime(), DateUtil.YYYY_MM_DDHHMMSS).getTime();
 			int days = (int) (time - createTime) / (1000 * 60 * 60 * 24);
@@ -82,11 +86,13 @@ public class UserServiceImpl implements UserService {
 		return response;
 	}
 	
+	@Override
 	public ObjectResponse<ClassStudentItem> getClassStudent (HttpServletRequest request, UserReq req) {
 		log.info("调用接口getClassStudent开始");
 		long startTime = System.currentTimeMillis();
 		ObjectResponse<ClassStudentItem> response = new ObjectResponse<>();
 		try {
+			SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd");
 			if (req.getToken() == null || req.getToken().trim().length() == 0) {
 				response.setCode(ResponseCode.CODE_90);
 				response.setMessage(ResponseCode.MSG_90);
@@ -95,7 +101,6 @@ public class UserServiceImpl implements UserService {
 			if (req.getDate() == null || req.getDate().trim().length() == 0) {
 				req.setDate(DateUtil.parseString(new Date(), DateUtil.YYYY_MM_DD));
 			} else {
-				SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd");
 				Date d = ft.parse(req.getDate().trim());
 				if (d.getTime() - startTime < 0) {
 					response.setCode(ResponseCode.CODE_0);
@@ -124,14 +129,69 @@ public class UserServiceImpl implements UserService {
 				StringBuilder sb = new StringBuilder();
 				for (StudentClassItem item : sciL) {
 					sb.append(",").append(item.getId());
+					Date endD = ft.parse(req.getDate().trim());
+					Date startT = ft.parse(item.getCreateTime()
+						.replaceAll("_", "-").replaceAll("/", "-"));
+					int days = (int) (endD.getTime() - startT.getTime()) / (1000 * 60 * 60 * 24);
+					item.setTrainingDays(days);
 				}
 				if (sb.length() > 0) {
+					//打卡信息
 					List<StudentTrainingsItem> stiL = trainingTaskMapper
 						.searchStudentTrainingsItemByStudentIds(
 						sb.substring(1), req.getDate());
+					//打卡图片
+					List<StudentTrainingsItem> stiL1 = trainingTaskMapper
+						.searchStudentTrainingsItemImgByStudentIds(
+						sb.substring(1), req.getDate());
+					if (stiL != null && stiL.size() > 0 && 
+						stiL1 != null && stiL1.size() > 0) {
+						for (StudentTrainingsItem item : stiL) {
+							if (item.getTrainingId() != null) {
+								List<String> imgL = new ArrayList<>();
+								for (StudentTrainingsItem item1 : stiL1) {
+									if (item.getTrainingId().intValue() == 
+										item1.getTrainingId().intValue()) {
+										imgL.add(item1.getVideoUrl());
+									}
+								}
+								item.setImgList(imgL);
+							}
+						}
+					}
+					if (stiL != null && stiL.size() > 0) {
+						for (StudentClassItem item : sciL) {
+							List<StudentTrainingsItem> l = new ArrayList<>();
+							for (StudentTrainingsItem items : stiL) {
+								if (item.getId().intValue() == 
+									items.getStudentId().intValue()) {
+									if (items.getState() != null) {
+										switch (items.getState().intValue()) {
+											case 0:
+												items.setStateDesc("未完成");
+												break;
+											case 1:
+												items.setStateDesc("已完成");
+												break;
+											case 2:
+												items.setStateDesc("未达标");
+												break;
+										default:
+											break;
+										}
+									}
+									l.add(items);
+								}
+							}
+							item.setTrainings(l);
+						}
+					}
 				}
 			}
+			res.setStudent(sciL);
 			response.setResult(res);
+			response.setCode(ResponseCode.CODE_1);
+			response.setMessage(ResponseCode.MSG_1);
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setCode(ResponseCode.CODE_0);

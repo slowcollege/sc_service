@@ -1,9 +1,13 @@
 package com.slow.college.param.user;
 
+import java.util.List;
+
 import lombok.Data;
 
 @Data
 public class StudentTrainingsItem {
+	
+	private Integer studentId;
 	
 	private Integer id;
 	
@@ -15,12 +19,16 @@ public class StudentTrainingsItem {
 	
 	private Integer achievement;
 	
+	private Integer target;
+	
 	private String unit;
 	
-	private String[] imgList;
+	private List<String> imgList;
 	
 	private String videoUrl;
 	
 	private String desc;
+	
+	private Integer trainingId;
 
 }

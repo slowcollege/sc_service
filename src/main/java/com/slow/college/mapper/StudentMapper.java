@@ -20,7 +20,7 @@ public interface StudentMapper {
 	@Select(" select id, name, phone, code, password, image, score, token, "
 		+ " DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') createTime "
 		+ " from student where token = #{token} ")
-	Student searchStudentByToken(@Param("phone") String token);
+	Student searchStudentByToken(@Param("token") String token);
 	
 	@Update(" update student set token = #{token} where id = ${id} ")
 	void updateStudentById(@Param("id") Integer id, @Param("token") String token);
@@ -35,7 +35,7 @@ public interface StudentMapper {
 	@Select(" select s.id, s.code, s.name, "
 		+ " 	CASE WHEN c.monitor_id = s.id THEN '班长' "
 		+ " 		WHEN c.vicemonitor_id = s.id THEN '副班长' "
-		+ " 		ELSE '成员' END duty, "
+		+ " 		ELSE '学员' END duty, "
 		+ " DATE_FORMAT(s.create_time, '%Y-%m-%d') createTime, s.score "
 		+ " from class c "
 		+ " 	left join class_has_student chs on c.id = chs.class_id "

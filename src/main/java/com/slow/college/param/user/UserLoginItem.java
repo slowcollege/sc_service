@@ -10,5 +10,7 @@ public class UserLoginItem {
 	private String name;
 	
 	private Integer trainingDays;
+	
+	private Integer id;
 
 }
