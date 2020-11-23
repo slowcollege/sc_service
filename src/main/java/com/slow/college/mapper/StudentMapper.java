@@ -2,6 +2,7 @@ package com.slow.college.mapper;
 
 import java.util.List;
 
+import com.slow.college.param.item.UserItem;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
@@ -43,5 +44,17 @@ public interface StudentMapper {
 		+ " where c.id = ${classId} group by s.id ")
 	List<StudentClassItem> searchUserDataItemByClassId(
 		@Param("classId") Integer classId);
-	
+
+
+
+
+    /**
+     * 根据token查询student
+     * @param token
+     * @return
+     */
+    @Select("select s.id, s.name,s.image,s.code,s.score,c.name as className from student s " +
+            " inner join class_has_student chs on s.id = chs.student_id " +
+            " inner join class c on chs.class_id = c.id where  s.token=#{token}")
+    UserItem selectUserItemByToken(String token);
 }
