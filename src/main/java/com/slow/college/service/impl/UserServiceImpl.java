@@ -202,6 +202,57 @@ public class UserServiceImpl implements UserService {
 		return response;
 	}
 	
+	@Override
+	public ObjectResponse<List<WaitTrainingItem>> getStudentTrainingTask (HttpServletRequest request, UserReq req) {
+		log.info("调用接口getStudentTrainingTask开始");
+		long startTime = System.currentTimeMillis();
+		ObjectResponse<List<WaitTrainingItem>> response = new ObjectResponse<>();
+		List<WaitTrainingItem> res = new ArrayList<>();
+		try {
+			if (req.getToken() == null || req.getToken().trim().length() == 0) {
+				response.setCode(ResponseCode.CODE_90);
+				response.setMessage(ResponseCode.MSG_90);
+				return response;
+			}
+			Student s = studentMapper.searchStudentByToken(req.getToken().trim());
+			if (s == null) {
+				response.setCode(ResponseCode.CODE_90);
+				response.setMessage(ResponseCode.MSG_90);
+				return response;
+			}
+			List<WaitTrainingItem> rL = trainingTaskMapper
+				.searchWaitTrainingItemByStudentIdAndTime(
+				s.getId(), DateUtil.parseString(new Date(), DateUtil.YYYY_MM_DD));
+			if (rL != null && rL.size() > 0) {
+				for (WaitTrainingItem item : rL) {
+					if (item.getState() == null || 
+						item.getState().intValue() == 0 ||
+						item.getState().intValue() == 2) {
+						if (item.getState() == null || 
+							item.getState().intValue() == 0) {
+							item.setState((byte) 0);
+							item.setStateDesc("未完成");
+						} else {
+							item.setState((byte) 2);
+							item.setStateDesc("未达标");
+						}
+						res.add(item);
+					}
+				}
+			}
+			response.setCode(ResponseCode.CODE_1);
+			response.setMessage(ResponseCode.MSG_1);
+			response.setResult(res);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode(ResponseCode.CODE_0);
+			response.setMessage("登录失败");
+		} 
+		long endTime = System.currentTimeMillis();
+		log.info("调用接口getStudentTrainingTask结束，耗时：" + (endTime - startTime) + "ms");
+		return response;
+	}
+	
 	public static void main(String[] args) {
 	}
 

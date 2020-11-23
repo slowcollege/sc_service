@@ -45,16 +45,15 @@ public interface StudentMapper {
 	List<StudentClassItem> searchUserDataItemByClassId(
 		@Param("classId") Integer classId);
 
-
-
-
     /**
      * 根据token查询student
      * @param token
      * @return
      */
-    @Select("select s.id, s.name,s.image,s.code,s.score,c.name as className from student s " +
-            " inner join class_has_student chs on s.id = chs.student_id " +
-            " inner join class c on chs.class_id = c.id where  s.token=#{token}")
+    @Select("select s.id, s.name,s.image,s.code,s.score,c.name as className "
+		+ " from student s " 
+    	+ " left join class_has_student chs on s.id = chs.student_id " 
+		+ " left join class c on chs.class_id = c.id "
+		+ " where s.token = #{token} ")
     UserItem selectUserItemByToken(String token);
 }

@@ -46,5 +46,17 @@ public class UserController {
 	public ObjectResponse<ClassStudentItem> getClassStudent (HttpServletRequest request, UserReq req) {
 		return userService.getClassStudent(request, req);
 	}
+	
+	/**
+	 * 读取待打卡列表
+	 * 
+	 * @param request
+	 * @param req
+	 * @return
+	 */
+	@RequestMapping(value = "/getStudentTrainingTask")
+	public ObjectResponse<List<WaitTrainingItem>> getStudentTrainingTask (HttpServletRequest request, UserReq req) {
+		return userService.getStudentTrainingTask(request, req);
+	}
 
 }
