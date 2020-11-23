@@ -1,18 +1,38 @@
 package com.slow.college.model;
 
 import lombok.Data;
-
+/**
+ * @description: TODO:班级类
+ * @author：gy
+ * @date 2020/11/23 10:36
+ * @version 1.0
+ **/
 @Data
 public class Class {
-	
+
+	/**
+	 * id
+	 */
 	private Integer id;
-	
+
+	/**
+	 * 班级名
+	 */
 	private String name;
-	
+
+	/**
+	 * 班长id
+	 */
 	private Integer monitorId;
-	
+
+	/**
+	 * 副班长id
+	 */
 	private Integer vicemonitorId;
-	
+
+	/**
+	 * 班级口号
+	 */
 	private String desc;
 
 	public Class() {
