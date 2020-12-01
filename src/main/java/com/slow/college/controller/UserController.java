@@ -1,23 +1,18 @@
 package com.slow.college.controller;
 
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.slow.college.param.training.WaitTrainingItem;
-import com.slow.college.param.user.ClassStudentItem;
-import com.slow.college.param.user.UserLoginItem;
+import com.slow.college.exception.ScBizException;
+import com.slow.college.param.response.BaseRsp;
+import com.slow.college.request.TrainingReq;
 import com.slow.college.request.UserReq;
-import com.slow.college.response.ObjectResponse;
 import com.slow.college.service.UserService;
 
 @RestController
-@RequestMapping(value = "/api/user", produces = "application/json; charset=UTF-8")
+@RequestMapping(value = "/api/v1/user", produces = "application/json; charset=UTF-8")
 public class UserController {
 	
 	@Autowired
@@ -31,8 +26,8 @@ public class UserController {
 	 * @return
 	 */
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
-	public ObjectResponse<UserLoginItem> login (HttpServletRequest request, UserReq req) {
-		return userService.login(request, req);
+	public BaseRsp login (UserReq req) throws ScBizException  {
+		return userService.login(req);
 	}
 	
 	/**
@@ -43,8 +38,32 @@ public class UserController {
 	 * @return
 	 */
 	@RequestMapping(value = "/getClassStudent")
-	public ObjectResponse<ClassStudentItem> getClassStudent (HttpServletRequest request, UserReq req) {
-		return userService.getClassStudent(request, req);
+	public BaseRsp getClassStudent (UserReq req) throws ScBizException  {
+		return userService.getClassStudent(req);
+	}
+	
+	/**
+	 * 读取待打卡列表
+	 * 
+	 * @param request
+	 * @param req
+	 * @return
+	 */
+	@RequestMapping(value = "/getStudentTrainingTask")
+	public BaseRsp getStudentTrainingTask (UserReq req) throws ScBizException  {
+		return userService.getStudentTrainingTask(req);
+	}
+	
+	/**
+	 * 提交打卡接口
+	 * 
+	 * @param req
+	 * @return
+	 * @throws ScBizException
+	 */
+	@RequestMapping(value = "/submitStudentTraining", method = RequestMethod.POST)
+	public BaseRsp submitStudentTraining (TrainingReq req) throws ScBizException {
+		return userService.submitStudentTraining(req);
 	}
 
 }

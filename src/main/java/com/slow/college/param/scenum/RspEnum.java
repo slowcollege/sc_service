@@ -20,11 +20,14 @@ public enum RspEnum {
     NO_DATA(402, "数据未找到"),
     SIGN_ERROR(406, "验签失败"),
     ERROR_DATA(407, "数据不可用"),
+    ERROR_PARAM(408, "参数格式错误"),
 
     /**
      * 用户
      */
     USER_UNEXISTS(2,"用户不存在"),
+    USER_PASSWORD(4,"密码错"),
+    USER_NOTOKEN(3,"token参数缺失"),
 
 
 

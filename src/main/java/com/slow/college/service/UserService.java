@@ -1,19 +1,18 @@
 package com.slow.college.service;
 
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
-import com.slow.college.param.training.WaitTrainingItem;
-import com.slow.college.param.user.ClassStudentItem;
-import com.slow.college.param.user.UserLoginItem;
+import com.slow.college.exception.ScBizException;
+import com.slow.college.param.response.BaseRsp;
+import com.slow.college.request.TrainingReq;
 import com.slow.college.request.UserReq;
-import com.slow.college.response.ObjectResponse;
 
 public interface UserService {
 	
-	ObjectResponse<UserLoginItem> login (HttpServletRequest request, UserReq req);
+	BaseRsp login (UserReq req) throws ScBizException;
 	
-	ObjectResponse<ClassStudentItem> getClassStudent (HttpServletRequest request, UserReq req);
+	BaseRsp getClassStudent (UserReq req) throws ScBizException;
 
+	BaseRsp getStudentTrainingTask (UserReq req) throws ScBizException;
+	
+	BaseRsp submitStudentTraining (TrainingReq req) throws ScBizException;
+	
 }

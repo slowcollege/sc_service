@@ -13,18 +13,23 @@ import com.slow.college.param.user.StudentClassItem;
 
 public interface StudentMapper {
 	
-	@Select(" select id, name, phone, code, password, image, score, token, "
-		+ " DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') createTime "
+	@Select(" select id, name, phone, code, password, image, score, token "
+		//+ " ,DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') createTime "
 		+ " from student where phone = #{phone} ")
 	Student searchStudentByPhone(@Param("phone") String phone);
 	
-	@Select(" select id, name, phone, code, password, image, score, token, "
-		+ " DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') createTime "
+	@Select(" select id, name, phone, code, password, image, score, token "
+		//+ " ,DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') createTime "
 		+ " from student where token = #{token} ")
 	Student searchStudentByToken(@Param("token") String token);
 	
 	@Update(" update student set token = #{token} where id = ${id} ")
 	void updateStudentById(@Param("id") Integer id, @Param("token") String token);
+	
+	@Update(" update student set score = #{score} where id = ${id} ")
+	void updateStudentScoreById(
+		@Param("id") Integer id, 
+		@Param("score") Integer score);
 
 	@Select(" select c.id classId, c.name className, c.desc classDesc "
 		+ " from student s "
@@ -37,7 +42,8 @@ public interface StudentMapper {
 		+ " 	CASE WHEN c.monitor_id = s.id THEN '班长' "
 		+ " 		WHEN c.vicemonitor_id = s.id THEN '副班长' "
 		+ " 		ELSE '学员' END duty, "
-		+ " DATE_FORMAT(s.create_time, '%Y-%m-%d') createTime, s.score "
+		//+ " DATE_FORMAT(s.create_time, '%Y-%m-%d') createTime, "
+		+ " s.score "
 		+ " from class c "
 		+ " 	left join class_has_student chs on c.id = chs.class_id "
 		+ " 	left join student s on chs.student_id = s.id "

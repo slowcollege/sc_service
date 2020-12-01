@@ -25,7 +25,9 @@ import org.springframework.stereotype.Component;
 public class SlowCollegeLogHandler {
     private static final Logger LOG = LoggerFactory.getLogger(SlowCollegeLogHandler.class);
 
-    @Pointcut(value = "execution(* com.slow.college.controllerV2.*.*(..))")
+    @Pointcut(value = "execution(* com.slow.college.controlle*.*.*(..))  && "
+    	+ " !execution(* com.slow.college.controller.UploadFileController.*(..)) "
+    )
     public void controller() {
     }
 

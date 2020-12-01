@@ -17,9 +17,9 @@ public class StudentClassItem {
 	
 	private Integer trainingDays;
 	
-	private String createTime;
+	//private String createTime;
 	
-	private String score;
+	private Integer score;
 	
 	private List<StudentTrainingsItem> trainings;
 

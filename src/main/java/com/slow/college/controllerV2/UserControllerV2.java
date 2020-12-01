@@ -21,7 +21,7 @@ public class UserControllerV2 {
     @Autowired
     private UserServiceV2 userService;
 
-    @RequestMapping(value = "/getStudentProfile", method = RequestMethod.POST)
+    @RequestMapping(value = "/getStudentProfile", method = RequestMethod.GET)
     public BaseRsp getStudentProfile(UserReq req) throws ScBizException {
         return userService.getStudentProfile(req);
     }
