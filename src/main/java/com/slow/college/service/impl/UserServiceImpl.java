@@ -247,42 +247,53 @@ public class UserServiceImpl implements UserService {
 			List<Map<String, Object>> resList = new ArrayList<>();
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject jsonO = jsonArray.getJSONObject(i);
-				log.info(jsonO);
-				if (!jsonO.has("id") || jsonO.isNull("id") || 
-					!jsonO.has("achievement") || jsonO.isNull("achievement") || 
-					((!jsonO.has("imgList") || jsonO.isNull("imgList")) && 
+				/*log.info(jsonO);*/
+				if (!jsonO.has("id") || jsonO.isNull("id")) {
+					return BaseRsp.fail(RspEnum.ERROR_PARAM);
+				}
+				//判断目标数量并且描述并且图片路径并且视频路径为空则退出接口
+				if ((!jsonO.has("achievement") || jsonO.isNull("achievement") || 
+					jsonO.getInt("achievement") == 0) &&
+					
+					(!jsonO.has("imgList") || jsonO.isNull("imgList") || 
+					jsonO.getJSONArray("imgList").length() == 0) &&
+					
 					(!jsonO.has("videoUrl") || jsonO.isNull("videoUrl") || 
 					jsonO.getString("videoUrl").trim().length() == 0) && 
+					
 					(!jsonO.has("desc") || jsonO.isNull("desc") || 
-					jsonO.getString("desc").trim().length() == 0))) {
+					jsonO.getString("desc").trim().length() == 0)) {
 					return BaseRsp.fail(RspEnum.ERROR_PARAM);
 				}
 				Map<String, Object> mapItem = new HashMap<>();
 				mapItem.put("id", jsonO.getLong("id"));
-				mapItem.put("achievement", jsonO.getInt("achievement"));
-				if (jsonO.has("imgList") && !jsonO.isNull("imgList")) {
+				if (jsonO.has("achievement") && !jsonO.isNull("achievement") && jsonO.getInt("achievement") > 0) {
+					mapItem.put("achievement", jsonO.getInt("achievement"));
+				}
+				if (jsonO.has("imgList") && !jsonO.isNull("imgList") && jsonO.getJSONArray("imgList").length() > 0) {
 					mapItem.put("imgList", jsonO.getJSONArray("imgList"));
 				}
-				if (jsonO.has("videoUrl") && !jsonO.isNull("videoUrl")) {
+				if (jsonO.has("videoUrl") && !jsonO.isNull("videoUrl") && jsonO.getString("videoUrl").trim().length() > 0) {
 					mapItem.put("video", jsonO.getString("videoUrl"));
 				}
-				if (jsonO.has("desc") && !jsonO.isNull("desc")) {
+				if (jsonO.has("desc") && !jsonO.isNull("desc") && jsonO.getString("desc").trim().length() > 0) {
 					mapItem.put("desc", jsonO.getString("desc"));
 				}
 				resList.add(mapItem);
 			}
 			int addScore = 0;
+			//查询用户目标训练任务，包含查询日期已提交数据
 			List<CheckTraningItem> checkL = trainingTaskMapper
 				.searchCheckTraningItemByStudentIdAndTime(
 				s.getId(), DateUtil.parseString(new Date(), DateUtil.YYYY_MM_DD));
 			List<TraniningResultItem> res = new ArrayList<>();
 			for (Map<String, Object> item : resList) {
-				boolean isH = false;
+				//数据库下，当前用户训练任务及当天已提交数据查询并初始化
 				CheckTraningItem cti = null;
 				if (checkL != null && checkL.size() > 0) {
-					for (CheckTraningItem items : checkL) {
-						if ((item.get("id") + "").equals(items.getTaskId() + "")) {
-							cti = items;
+					for (CheckTraningItem checkItem : checkL) {
+						if ((item.get("id") + "").equals(checkItem.getTaskId() + "")) {
+							cti = checkItem;
 							break;
 						}
 					}
@@ -290,15 +301,19 @@ public class UserServiceImpl implements UserService {
 				if (cti == null) {
 					return BaseRsp.fail(RspEnum.ERROR_DATA);
 				}
+				if (cti.getAchievement() == null) cti.setAchievement(0);
 				if (cti.getDayTrainingtaskId() != null && 
 					cti.getDayTrainingtaskId().intValue() > 0) {
-					isH = true;
 					if (cti.getDone().intValue() == 1) {
 						addScore--;
 					}
-					cti.setAchievement(
-						cti.getAchievement() + 
-						(int) item.get("achievement"));
+					if (!item.containsKey("achievement")) {
+						cti.setAchievement(cti.getTarget());
+					} else {
+						cti.setAchievement(
+							//cti.getAchievement() + 
+							(int) item.get("achievement"));
+					}
 					if (cti.getAchievement().intValue() >= cti.getTarget().intValue()) {
 						cti.setDone((byte) 1);
 						cti.setScore(1);
@@ -333,6 +348,7 @@ public class UserServiceImpl implements UserService {
 						cti.getVideo() != null ? cti.getVideo() : null,
 						cti.getDayTrainingtaskId()
 					);
+					//整理返回内容
 					List<String> imgL = trainingImageMapper
 						.searchTrainingImageByTrainingId(
 						cti.getTrainingtaskId());
@@ -345,19 +361,26 @@ public class UserServiceImpl implements UserService {
 					tri.setVideoUrl(cti.getVideo() != null ? cti.getVideo() : null);
 					res.add(tri);
 				} else {
+					if (!item.containsKey("achievement")) {
+						cti.setAchievement(cti.getTarget());
+					} else {
+						cti.setAchievement(
+							//cti.getAchievement() + 
+							(int) item.get("achievement"));
+					}
 					Training t = new Training(
 						null, cti.getTrainingtaskId(), 
 						DateUtil.parseString(new Date(), DateUtil.YYYY_MM_DD), 
 						item.containsKey("desc") && item.get("desc") != null && 
 							(item.get("desc") + "").length() > 0 ? 
 							item.get("desc") + "" : null, 
-						(int) item.get("achievement") >= cti.getTarget().intValue() ?
+							cti.getAchievement().intValue() >= cti.getTarget().intValue() ?
 							(byte) 1 : (byte) 2, 
 						item.containsKey("video") && item.get("video") != null && 
 							(item.get("video") + "").length() > 0 ? 
 							item.get("video") + "" : null, 
-						(int) item.get("achievement"), cti.getUnit(), 
-						(int) item.get("achievement") >= cti.getTarget().intValue() ?
+							cti.getAchievement(), cti.getUnit(), 
+							cti.getAchievement().intValue() >= cti.getTarget().intValue() ?
 							 1 : 0);
 					addScore += t.getScore();
 					trainingMapper.insertTraining(t);
@@ -372,6 +395,7 @@ public class UserServiceImpl implements UserService {
 						}
 						/*trainingImageMapper.insertList(lImg, t.getId());*/
 					}
+					//整理返回参数
 					List<String> imgL = trainingImageMapper
 						.searchTrainingImageByTrainingId(
 						cti.getTrainingtaskId());
