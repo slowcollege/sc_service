@@ -287,6 +287,21 @@ public class UserServiceImpl implements UserService {
 				.searchCheckTraningItemByStudentIdAndTime(
 				s.getId(), DateUtil.parseString(new Date(), DateUtil.YYYY_MM_DD));
 			List<TraniningResultItem> res = new ArrayList<>();
+			/*for (Map<String, Object> item : resList) {
+				//数据库下，当前用户训练任务及当天已提交数据查询并初始化
+				CheckTraningItem cti = null;
+				if (checkL != null && checkL.size() > 0) {
+					for (CheckTraningItem checkItem : checkL) {
+						if ((item.get("id") + "").equals(checkItem.getTaskId() + "")) {
+							cti = checkItem;
+							break;
+						}
+					}
+				}
+				if (cti == null) {
+					return BaseRsp.fail(RspEnum.ERROR_DATA);
+				}
+			}*/
 			for (Map<String, Object> item : resList) {
 				//数据库下，当前用户训练任务及当天已提交数据查询并初始化
 				CheckTraningItem cti = null;
@@ -320,6 +335,7 @@ public class UserServiceImpl implements UserService {
 						addScore++;
 					} else {
 						cti.setDone((byte) 2);
+						cti.setScore(0);
 					}
 					if (item.containsKey("videoUrl")) {
 						cti.setVideo(item.get("videoUrl") + "");
@@ -409,10 +425,10 @@ public class UserServiceImpl implements UserService {
 					res.add(tri);
 				}
 			}
-			if (addScore > 0) {
+			if (addScore != 0) {
 				if (s.getScore() == null) s.setScore(0);
 				s.setScore(s.getScore().intValue() + addScore);
-				studentMapper.updateStudentScoreById(s.getId(), addScore);
+				studentMapper.updateStudentScoreById(s.getId(), s.getScore());
 			}
 			return BaseRsp.success(res);
 		} catch (JSONException e) {

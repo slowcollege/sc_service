@@ -22,7 +22,7 @@ public interface TrainingTaskMapper {
 	List<StudentClassItem> searchStudentSourceByIds(@Param("ids") String ids);
 	
 	@Select(" select s.id studentId, sht.task_id Id, tt.name, t.done state, "
-		+ " t.achievement, sht.target, sht.unit, t.desc videoUrl, t.desc, "
+		+ " t.achievement, sht.target, sht.unit, t.video videoUrl, t.desc, "
 		+ " t.id trainingId "
 		+ " from student s "
 		+ " left join student_has_trainingtask sht on sht.student_id = s.id "
