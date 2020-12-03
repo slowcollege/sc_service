@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
 		res.setId(s.getId());
 		res.setName(s.getName());
     	List<StudentClassItem> sL = trainingTaskMapper
-			.searchStudentSourceByIds(s.getId() + "");
+			.searchStudentSourceByIds(s.getId() + "", null);
     	if (sL != null && sL.size() == 1 && sL.get(0) != null) {
     		res.setTrainingDays(sL.get(0).getTrainingDays());
     	}
@@ -121,7 +121,7 @@ public class UserServiceImpl implements UserService {
 			if (sb.length() > 0) {
 				//学习时长，分数
 				List<StudentClassItem> sL = trainingTaskMapper
-					.searchStudentSourceByIds(sb.substring(1));
+					.searchStudentSourceByIds(sb.substring(1), req.getDate());
 				//打卡信息
 				List<StudentTrainingsItem> stiL = trainingTaskMapper
 					.searchStudentTrainingsItemByStudentIds(
@@ -132,11 +132,17 @@ public class UserServiceImpl implements UserService {
 					sb.substring(1), req.getDate());
 				if (sL != null && sL.size() > 0) {
 					for (StudentClassItem item : sciL) {
+						boolean isHs = false;
 						for (StudentClassItem items : sL) {
 							if (item.getId().intValue() == items.getId().intValue()) {
+								isHs = true;
 								item.setTrainingDays(items.getTrainingDays());
 								item.setScore(items.getScore());
 							}
+						}
+						if (!isHs) {
+							item.setTrainingDays(0);
+							item.setScore(0);
 						}
 					}
 				}

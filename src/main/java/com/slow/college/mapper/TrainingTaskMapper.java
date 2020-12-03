@@ -12,14 +12,21 @@ import com.slow.college.param.user.StudentTrainingsItem;
 
 public interface TrainingTaskMapper {
 	
-	@Select(" select count(*) trainingDays,a.id, sum(a.score) score from "
+	@Select("<script> "
+		+ " select count(*) trainingDays,a.id, sum(a.score) score from "
 		+ " ( select t.date, s.id, sum(t.score) score "
 		+ " 	from student s "
 		+ " 	left join student_has_trainingtask sht on sht.student_id = s.id "
 		+ " 	left join training t on t.student_has_trainingtask_id = sht.id "
 		+ " where s.id in (${ids}) and t.`done` = 1 "
-		+ " group by t.`date`, s.id) as a group by a.id ")
-	List<StudentClassItem> searchStudentSourceByIds(@Param("ids") String ids);
+		+ " <if test='time != null'>"
+		+ " 	and t.date <![CDATA[<=]]> #{time} "
+		+ "</if> "
+		+ " group by t.`date`, s.id) as a group by a.id "
+		+ " </script>")
+	List<StudentClassItem> searchStudentSourceByIds(
+		@Param("ids") String ids,
+		@Param("time") String time);
 	
 	@Select(" select s.id studentId, sht.task_id Id, tt.name, t.done state, "
 		+ " t.achievement, sht.target, sht.unit, t.video videoUrl, t.desc, "

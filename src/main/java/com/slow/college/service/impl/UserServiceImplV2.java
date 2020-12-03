@@ -38,7 +38,7 @@ public class UserServiceImplV2 implements UserServiceV2 {
         UserItem s = studentMapper.selectUserItemByToken(req.getToken().trim());
         if (s == null) {
         	List<StudentClassItem> sL = trainingTaskMapper
-				.searchStudentSourceByIds(s.getId() + "");
+				.searchStudentSourceByIds(s.getId() + "", null);
         	if (sL != null && sL.size() == 1 && sL.get(0) != null) {
         		s.setScore(sL.get(0).getScore());
         	}
